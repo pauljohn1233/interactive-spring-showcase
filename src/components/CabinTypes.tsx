@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Bed, Users, Maximize, Waves } from "lucide-react";
+import { Check, Users, Maximize, ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
 
 interface CabinType {
   type: "Standard" | "Deluxe" | "Suite";
@@ -61,6 +64,34 @@ const cabins: CabinType[] = [
 ];
 
 const CabinTypes = () => {
+  const { addItem, items } = useCart();
+  const [addedCabins, setAddedCabins] = useState<Set<string>>(new Set());
+
+  const handleAddToCart = (cabin: CabinType) => {
+    addItem({
+      id: `cabin-${cabin.type}`,
+      type: "cabin",
+      name: `${cabin.type} Cabin`,
+      description: `${cabin.size} - Up to ${cabin.capacity} guests`,
+      price: cabin.price,
+      image: cabin.image,
+    });
+    setAddedCabins((prev) => new Set(prev).add(cabin.type));
+    toast.success(`${cabin.type} Cabin added to cart!`);
+    
+    setTimeout(() => {
+      setAddedCabins((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cabin.type);
+        return newSet;
+      });
+    }, 2000);
+  };
+
+  const isInCart = (cabinType: string) => {
+    return items.some((item) => item.id === `cabin-${cabinType}`);
+  };
+
   return (
     <section id="cabins" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -86,8 +117,15 @@ const CabinTypes = () => {
               }`}
             >
               {cabin.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 font-body text-sm font-medium">
+                <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 font-body text-sm font-medium z-10">
                   Most Popular
+                </div>
+              )}
+
+              {/* In Cart Badge */}
+              {isInCart(cabin.type) && (
+                <div className="absolute top-0 right-0 bg-green-500 text-primary-foreground text-xs px-2 py-1 rounded-bl-lg z-10 font-body">
+                  In Cart
                 </div>
               )}
 
@@ -142,13 +180,26 @@ const CabinTypes = () => {
                 </ul>
 
                 <Button
-                  className={`w-full font-body ${
-                    cabin.popular
+                  onClick={() => handleAddToCart(cabin)}
+                  className={`w-full font-body transition-all ${
+                    addedCabins.has(cabin.type)
+                      ? "bg-green-500 hover:bg-green-600 text-primary-foreground"
+                      : cabin.popular
                       ? "gradient-ocean text-primary-foreground"
                       : "bg-muted text-foreground hover:bg-muted/80"
                   }`}
                 >
-                  Select Cabin
+                  {addedCabins.has(cabin.type) ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Added to Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Add to Cart
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

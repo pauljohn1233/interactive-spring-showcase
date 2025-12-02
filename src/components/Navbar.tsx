@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Ship, Menu, X, User } from "lucide-react";
 import AuthModal from "./AuthModal";
+import CartButton from "./CartButton";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,8 +41,9 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Auth Buttons */}
+            {/* Auth Buttons & Cart */}
             <div className="hidden md:flex items-center gap-3">
+              <CartButton />
               <Button
                 variant="ghost"
                 onClick={() => setAuthModal("login")}
@@ -58,12 +60,15 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-foreground"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <CartButton />
+              <button
+                className="p-2 text-foreground"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
 
