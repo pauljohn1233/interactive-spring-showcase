@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Star, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
 
 interface CruisePackage {
   id: number;
@@ -51,14 +53,40 @@ const cruises: CruisePackage[] = [
     destination: "Scandinavia",
     price: 2499,
     duration: 14,
-    status: "UNAVAILABLE",
+    status: "AVAILABLE",
     rating: 4.7,
     image: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&auto=format&fit=crop&q=80",
   },
 ];
 
 const CruisePackages = () => {
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const { addItem, items } = useCart();
+  const [addedItems, setAddedItems] = useState<Set<number>>(new Set());
+
+  const handleAddToCart = (cruise: CruisePackage) => {
+    addItem({
+      id: `cruise-${cruise.id}`,
+      type: "cruise",
+      name: cruise.cruiseName,
+      description: `${cruise.duration} Days - ${cruise.destination}`,
+      price: cruise.price,
+      image: cruise.image,
+    });
+    setAddedItems((prev) => new Set(prev).add(cruise.id));
+    toast.success(`${cruise.cruiseName} added to cart!`);
+    
+    setTimeout(() => {
+      setAddedItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cruise.id);
+        return newSet;
+      });
+    }, 2000);
+  };
+
+  const isInCart = (cruiseId: number) => {
+    return items.some((item) => item.id === `cruise-${cruiseId}`);
+  };
 
   return (
     <section id="cruises" className="py-20 bg-muted">
@@ -81,8 +109,6 @@ const CruisePackages = () => {
             <div
               key={cruise.id}
               className="group relative bg-card rounded-xl overflow-hidden shadow-card hover:shadow-elegant transition-all duration-300"
-              onMouseEnter={() => setHoveredId(cruise.id)}
-              onMouseLeave={() => setHoveredId(null)}
             >
               {/* Image */}
               <div className="relative h-48 overflow-hidden">
@@ -101,6 +127,11 @@ const CruisePackages = () => {
                 >
                   {cruise.status === "AVAILABLE" ? "Available" : "Sold Out"}
                 </Badge>
+                {isInCart(cruise.id) && (
+                  <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
+                    In Cart
+                  </Badge>
+                )}
               </div>
 
               {/* Content */}
@@ -137,10 +168,24 @@ const CruisePackages = () => {
                   <Button
                     size="sm"
                     disabled={cruise.status === "UNAVAILABLE"}
-                    className="gradient-ocean text-primary-foreground"
+                    onClick={() => handleAddToCart(cruise)}
+                    className={`transition-all ${
+                      addedItems.has(cruise.id)
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "gradient-ocean"
+                    } text-primary-foreground`}
                   >
-                    Book Now
-                    <ChevronRight className="w-4 h-4 ml-1" />
+                    {addedItems.has(cruise.id) ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" />
+                        Added
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4 mr-1" />
+                        Add
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

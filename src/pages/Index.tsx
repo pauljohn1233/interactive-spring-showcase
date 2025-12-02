@@ -5,6 +5,8 @@ import CabinTypes from "@/components/CabinTypes";
 import Itinerary from "@/components/Itinerary";
 import BookingForm from "@/components/BookingForm";
 import Footer from "@/components/Footer";
+import Cart from "@/components/Cart";
+import PaymentModal from "@/components/PaymentModal";
 
 const Index = () => {
   return (
@@ -16,6 +18,8 @@ const Index = () => {
       <Itinerary />
       <BookingForm />
       <Footer />
+      <Cart />
+      <PaymentModal />
     </main>
   );
 };
