@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import CruisePackages from "@/components/CruisePackages";
 import Itinerary from "@/components/Itinerary";
+import Support from "@/components/Support";
 import BookingForm from "@/components/BookingForm";
 import Footer from "@/components/Footer";
 
@@ -12,6 +13,7 @@ const Index = () => {
       <Hero />
       <CruisePackages />
       <Itinerary />
+      <Support />
       <BookingForm />
       <Footer />
     </main>
