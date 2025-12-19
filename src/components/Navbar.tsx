@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Ship, Menu, X, User } from "lucide-react";
+import { Ship, Menu, X, User, Ticket } from "lucide-react";
 import AuthModal from "./AuthModal";
 
 const Navbar = () => {
@@ -10,7 +11,7 @@ const Navbar = () => {
   const navLinks = [
     { label: "Cruises", href: "#cruises" },
     { label: "Itineraries", href: "#itineraries" },
-    { label: "About", href: "#about" },
+    { label: "Support", href: "#support" },
   ];
 
   return (
@@ -19,12 +20,12 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group">
               <Ship className="w-8 h-8 text-primary transition-transform group-hover:scale-110" />
               <span className="font-display text-xl md:text-2xl font-semibold text-foreground">
                 OceanVoyage
               </span>
-            </a>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
@@ -37,6 +38,13 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
+              <Link
+                to="/bookings"
+                className="font-body text-muted-foreground hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left flex items-center gap-1"
+              >
+                <Ticket className="w-4 h-4" />
+                My Bookings
+              </Link>
             </div>
 
             {/* Auth Buttons */}
@@ -80,6 +88,14 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
+              <Link
+                to="/bookings"
+                className="block font-body text-muted-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Ticket className="w-4 h-4 inline mr-2" />
+                My Bookings
+              </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Button
                   variant="ghost"

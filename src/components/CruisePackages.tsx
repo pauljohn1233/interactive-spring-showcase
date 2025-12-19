@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Clock, Star, ChevronRight, Check, Bed, Users, Maximize } from "lucide-react";
-import { toast } from "sonner";
+import { MapPin, Clock, Star, ChevronRight, Bed, Users, Maximize } from "lucide-react";
 
 interface CruisePackage {
   id: number;
@@ -129,7 +128,7 @@ const CruisePackages = () => {
       day: "numeric",
     });
 
-    const reservationData = {
+    const paymentData = {
       reservationId,
       customerId,
       cruiseId: selectedCruise.id,
@@ -144,8 +143,7 @@ const CruisePackages = () => {
     };
 
     setIsCabinModalOpen(false);
-    toast.success("Reservation confirmed!");
-    navigate("/reservation", { state: reservationData });
+    navigate("/payment", { state: paymentData });
   };
 
   return (
@@ -251,7 +249,7 @@ const CruisePackages = () => {
               Select Cabin for {selectedCruise?.cruiseName}
             </DialogTitle>
             <p className="text-muted-foreground">
-              Choose your preferred cabin type to complete the reservation
+              Choose your preferred cabin type to proceed to payment
             </p>
           </DialogHeader>
 
@@ -314,7 +312,7 @@ const CruisePackages = () => {
                     size="sm"
                   >
                     <Bed className="w-4 h-4 mr-2" />
-                    Select & Book
+                    Select & Pay
                   </Button>
                 </div>
               </div>
