@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MapPin, Clock, Star, ChevronRight, Check, Bed, Users, Maximize } from "lucide-react";
 import { toast } from "sonner";
 
 interface CruisePackage {
@@ -14,6 +15,16 @@ interface CruisePackage {
   status: "AVAILABLE" | "UNAVAILABLE";
   rating: number;
   image: string;
+}
+
+interface CabinType {
+  type: string;
+  price: number;
+  size: string;
+  capacity: string;
+  features: string[];
+  image: string;
+  popular?: boolean;
 }
 
 const cruises: CruisePackage[] = [
@@ -59,33 +70,82 @@ const cruises: CruisePackage[] = [
   },
 ];
 
-const CruisePackages = () => {
-  const { addItem, items } = useCart();
-  const [addedItems, setAddedItems] = useState<Set<number>>(new Set());
+const cabins: CabinType[] = [
+  {
+    type: "Interior Cabin",
+    price: 299,
+    size: "160 sq ft",
+    capacity: "2 guests",
+    features: ["Twin beds", "Private bathroom", "TV", "Climate control"],
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    type: "Ocean View Cabin",
+    price: 499,
+    size: "185 sq ft",
+    capacity: "2-3 guests",
+    features: ["Ocean view window", "Queen bed", "Private bathroom", "Mini fridge"],
+    image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop&q=80",
+    popular: true,
+  },
+  {
+    type: "Balcony Suite",
+    price: 799,
+    size: "250 sq ft",
+    capacity: "2-4 guests",
+    features: ["Private balcony", "King bed", "Living area", "Premium amenities"],
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    type: "Royal Suite",
+    price: 1299,
+    size: "400 sq ft",
+    capacity: "4-6 guests",
+    features: ["Panoramic views", "Master bedroom", "Butler service", "Jacuzzi"],
+    image: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop&q=80",
+  },
+];
 
-  const handleAddToCart = (cruise: CruisePackage) => {
-    addItem({
-      id: `cruise-${cruise.id}`,
-      type: "cruise",
-      name: cruise.cruiseName,
-      description: `${cruise.duration} Days - ${cruise.destination}`,
-      price: cruise.price,
-      image: cruise.image,
-    });
-    setAddedItems((prev) => new Set(prev).add(cruise.id));
-    toast.success(`${cruise.cruiseName} added to cart!`);
-    
-    setTimeout(() => {
-      setAddedItems((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(cruise.id);
-        return newSet;
-      });
-    }, 2000);
+const CruisePackages = () => {
+  const navigate = useNavigate();
+  const [selectedCruise, setSelectedCruise] = useState<CruisePackage | null>(null);
+  const [isCabinModalOpen, setIsCabinModalOpen] = useState(false);
+
+  const handleSelectCruise = (cruise: CruisePackage) => {
+    if (cruise.status === "UNAVAILABLE") return;
+    setSelectedCruise(cruise);
+    setIsCabinModalOpen(true);
   };
 
-  const isInCart = (cruiseId: number) => {
-    return items.some((item) => item.id === `cruise-${cruiseId}`);
+  const handleSelectCabin = (cabin: CabinType) => {
+    if (!selectedCruise) return;
+
+    const reservationId = `RES-${Date.now().toString(36).toUpperCase()}`;
+    const customerId = `CUS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const bookingDate = new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const reservationData = {
+      reservationId,
+      customerId,
+      cruiseId: selectedCruise.id,
+      cruiseName: selectedCruise.cruiseName,
+      destination: selectedCruise.destination,
+      cabinType: cabin.type,
+      cabinPrice: cabin.price,
+      cruisePrice: selectedCruise.price,
+      totalPrice: selectedCruise.price + cabin.price,
+      bookingDate,
+      duration: selectedCruise.duration,
+    };
+
+    setIsCabinModalOpen(false);
+    toast.success("Reservation confirmed!");
+    navigate("/reservation", { state: reservationData });
   };
 
   return (
@@ -127,11 +187,6 @@ const CruisePackages = () => {
                 >
                   {cruise.status === "AVAILABLE" ? "Available" : "Sold Out"}
                 </Badge>
-                {isInCart(cruise.id) && (
-                  <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
-                    In Cart
-                  </Badge>
-                )}
               </div>
 
               {/* Content */}
@@ -168,24 +223,11 @@ const CruisePackages = () => {
                   <Button
                     size="sm"
                     disabled={cruise.status === "UNAVAILABLE"}
-                    onClick={() => handleAddToCart(cruise)}
-                    className={`transition-all ${
-                      addedItems.has(cruise.id)
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "gradient-ocean"
-                    } text-primary-foreground`}
+                    onClick={() => handleSelectCruise(cruise)}
+                    className="gradient-ocean text-primary-foreground"
                   >
-                    {addedItems.has(cruise.id) ? (
-                      <>
-                        <Check className="w-4 h-4 mr-1" />
-                        Added
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-4 h-4 mr-1" />
-                        Add
-                      </>
-                    )}
+                    Select
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -200,6 +242,105 @@ const CruisePackages = () => {
           </Button>
         </div>
       </div>
+
+      {/* Cabin Selection Modal */}
+      <Dialog open={isCabinModalOpen} onOpenChange={setIsCabinModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">
+              Select Cabin for {selectedCruise?.cruiseName}
+            </DialogTitle>
+            <p className="text-muted-foreground">
+              Choose your preferred cabin type to complete the reservation
+            </p>
+          </DialogHeader>
+
+          <div className="grid md:grid-cols-2 gap-4 mt-4">
+            {cabins.map((cabin) => (
+              <div
+                key={cabin.type}
+                className="relative bg-muted rounded-xl overflow-hidden hover:shadow-elegant transition-all cursor-pointer group"
+                onClick={() => handleSelectCabin(cabin)}
+              >
+                {cabin.popular && (
+                  <Badge className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground">
+                    Most Popular
+                  </Badge>
+                )}
+
+                <div className="relative h-32 overflow-hidden">
+                  <img
+                    src={cabin.image}
+                    alt={cabin.type}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
+                </div>
+
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-display text-lg font-semibold text-foreground">
+                      {cabin.type}
+                    </h4>
+                    <p className="font-display text-xl font-bold text-primary">
+                      +${cabin.price}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                    <span className="flex items-center gap-1">
+                      <Maximize className="w-3 h-3" />
+                      {cabin.size}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {cabin.capacity}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1">
+                    {cabin.features.slice(0, 3).map((feature) => (
+                      <span
+                        key={feature}
+                        className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+
+                  <Button
+                    className="w-full mt-4 gradient-ocean text-primary-foreground"
+                    size="sm"
+                  >
+                    <Bed className="w-4 h-4 mr-2" />
+                    Select & Book
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {selectedCruise && (
+            <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <p className="text-sm text-muted-foreground mb-1">Selected Package</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-display font-semibold text-foreground">
+                    {selectedCruise.cruiseName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCruise.destination} • {selectedCruise.duration} Days
+                  </p>
+                </div>
+                <p className="font-display text-xl font-bold text-primary">
+                  ${selectedCruise.price}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
